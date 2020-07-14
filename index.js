@@ -26,6 +26,17 @@ MongoClient.connect('mongodb+srv://cocorugo:bbkBoo1camp@cluster0-06yeb.mongodb.n
     }
 });
 
+app.get('/buscador', function (req, res) {
+    db.collection('actividades').find().toArray(function (err, voluntario) {
+        if (err !== null) {
+            console.log(err);
+            res.send(err);
+        } else {
+            res.send(voluntario);
+            console.log("funciona");
+        }
+    })
+});
 
 app.post('/resultadosAfinidades', function (req, res) {
 
