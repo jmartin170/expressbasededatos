@@ -53,7 +53,7 @@ app.get('/cargarTematicas', function (req, res) {
 
 app.get('/cargarProvincias', function (req, res) {
 
-    actividades.distinct("provincia", function (err, provincias){
+    actividades.distinct("provincia", function (err, provincias) {
         if (err !== null) {
             console.log(err);
             res.send(err);
@@ -65,15 +65,154 @@ app.get('/cargarProvincias', function (req, res) {
     })
 })
 
-app.post('/buscador', function (req, res){
+app.post('/buscador', function (req, res) {
 
     let palabra = req.body.palabra;
-    let tematicas = req.body.tematicas;
+    let tematicasInt = req.body.tematicas;
     let provincia = req.body.provincia;
 
-    
+    let filtroPorPalabra = [];
+    let filtroPorProvincia = [];
+    let tematicasConActividades = [];
+    let actividadesConTemas = [];
+    let actividadesFinales = [];
 
 
+    actividades.find().toArray(function (err, actividadesDb) {
+        if (err !== null) {
+            console.log(err);
+            res.send(err);
+        } else {
+
+            // console.log(tematicasDb)
+
+            filtroPorPalabra = actividadesDb.filter(function (actividad) {
+                {
+                    if (actividad.titulo.toLowerCase().indexOf(palabra.toLowerCase()) !== -1 || actividad.provincia.toLowerCase().indexOf(palabra.toLowerCase()) !== -1 || actividad.ambito.toLowerCase().indexOf(palabra.toLowerCase()) !== -1 || actividad.ong.toLowerCase().indexOf(palabra.toLowerCase()) !== -1 || actividad.descripcion.toLowerCase().indexOf(palabra.toLowerCase()) !== -1 || actividad.extras.toLowerCase().indexOf(palabra.toLowerCase()) !== -1 || actividad.municipio.toLowerCase().indexOf(palabra.toLowerCase()) !== -1) {
+                        return true;
+                    }
+                }
+            })
+
+            if (provincia!=="Seleccione una provincia"){
+                filtroPorProvincia = filtroPorPalabra.filter(function (actividad) {
+                    {
+                        if (actividad.provincia.toLowerCase().indexOf(provincia.toLowerCase()) !== -1) {
+                            return true;
+                        } 
+                    }
+                })
+            } else {
+                filtroPorProvincia=filtroPorPalabra;
+            }
+
+
+            tematicas.find().toArray(function (err, tematicasDb) {
+                if (err !== null) {
+                    console.log(err);
+                    res.send(err);
+                } else {
+                    // console.log(tematicasDb)
+
+                    for (let m = 0; m < tematicasDb.length; m++) {
+                        tematicasConActividades.push({ nombre: tematicasDb[m].nombre, palabrasClave: [], actividades: [] })
+                    }
+
+                    for (let n = 0; n < tematicasDb.length; n++) {
+                        for (let o = 0; o < tematicasConActividades.length; o++) {
+                            if (tematicasDb[n].nombre === tematicasConActividades[o].nombre) {
+                                tematicasConActividades[o].palabrasClave = tematicasDb[n].palabrasClave
+                            }
+                        }
+                    }
+
+                    for(let i=0; i<tematicasConActividades.length; i++){
+                        for (let j=0; j<tematicasConActividades[i].palabrasClave.length; j++){
+                            for(let k=0; k<filtroPorProvincia.length; k++){
+                                if(filtroPorProvincia[k].titulo.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1 || filtroPorProvincia[k].ambito.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1  || filtroPorProvincia[k].descripcion.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1 || filtroPorProvincia[k].extras.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1  ){
+
+
+                                    if (tematicasConActividades[i].actividades.length === 0) {
+                                        
+                                        (tematicasConActividades[i].actividades).push(filtroPorProvincia[k]) 
+
+                                    } else {
+                                        let actividadExiste = false;
+                                        for (let r = 0; r < tematicasConActividades[i].actividades.length; r++) {
+
+                                            if (filtroPorProvincia[k].titulo === tematicasConActividades[i].actividades[r].titulo && filtroPorProvincia[k].ambito === tematicasConActividades[i].actividades[r].ambito && filtroPorProvincia[k].descripcion === tematicasConActividades[i].actividades[r].descripcion && filtroPorProvincia[k].extras === tematicasConActividades[i].actividades[r].extras) {
+                                                actividadExiste = true;
+                                            }
+                                        }
+
+                                        if (actividadExiste === false) {
+                                            (tematicasConActividades[i].actividades).push(filtroPorProvincia[k])
+                                        }
+                                    }  
+                                }
+                            }
+                        }
+                    }
+                    // console.log("MIRAR AQUÍ----------------------")
+                    // console.log(tematicasConActividades)
+
+                    //Creamos el array actividadesConTemas y asignamos a cada actividad los temas correspondientes.
+
+                    for (let t = 0; t < tematicasConActividades.length; t++) {
+                        for (let u = 0; u < tematicasConActividades[t].actividades.length; u++) {
+
+                            if (actividadesConTemas.length === 0) {
+                                actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
+
+                            } else {
+                                let actividadExiste = false;
+
+                                for (let v = 0; v < actividadesConTemas.length; v++) {
+                                    let datos = actividadesConTemas[v].actividad
+                                    if (datos.titulo === tematicasConActividades[t].actividades[u].titulo && datos.ambito === tematicasConActividades[t].actividades[u].ambito && datos.descripcion === tematicasConActividades[t].actividades[u].descripcion && datos.extras === tematicasConActividades[t].actividades[u].extras) {
+                                        actividadExiste = true;
+                                        actividadesConTemas[v].tema.push(tematicasConActividades[t].nombre)
+                                    }
+                                }
+                                if (actividadExiste === false) {
+                                    actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
+                                }
+                            }
+                        }
+                    }
+                    
+                    // console.log("MIRAR AQUÍ----------------------")
+                    // console.log(actividadesConTemas)
+
+                    for (let a=0; a<tematicasInt.length; a++){
+                        for (let b=0; b<actividadesConTemas.length; b++){
+                            for (let c=0; c<actividadesConTemas[b].tema.length; c++){
+                                if(tematicasInt[a]===actividadesConTemas[b].tema[c]){
+                                    actividadesFinales.push(actividadesConTemas[b])
+                                }
+                            }
+                        }
+                    }
+                    console.log("MIRAR AQUÍ-----------------------------------------------------------------------------------")
+                    console.log(actividadesFinales)
+                    res.send(actividadesFinales)
+                }
+            })
+
+
+        }
+
+        // console.log("FILTRADO POR PALABRASSSSSSS-----------")
+        // console.log(filtroPorPalabra)
+
+        // console.log("FILTRADO POR PROVINCIA----------------------")
+        // console.log(filtroPorProvincia)
+
+        // console.log(actividadesDb)
+        // res.send(actividadesDb)
+
+
+    })
 
 })
 
@@ -81,8 +220,6 @@ app.post('/buscador', function (req, res){
 app.post('/resultadosAfinidades', function (req, res) {
 
     let afinidadesInt = req.body.afinidades;
-
-
 
     tematicas.find().toArray(function (err, tematicasDb) {
         if (err !== null) {
@@ -105,15 +242,12 @@ app.post('/resultadosAfinidades', function (req, res) {
             for (let i = 0; i < tematicasDb.length; i++) {
                 for (let j = 0; j < afinidadesInt.length; j++) {
                     valoresDivision.push(parseInt(afinidadesInt[j].valor) / parseInt(tematicasDb[i].afinidades[j].valor[0]))
-
                 }
-
             }
 
             // OJO!! CAMBIAR 4 POR NÚMERO DE SLIDERS 
             for (let h = 0; h < valoresDivision.length; h = h + 4) {
                 valoresFiltrados.push(valoresDivision.slice(h, h + 4))
-
             }
 
             let arrayGrande = [];
@@ -122,7 +256,6 @@ app.post('/resultadosAfinidades', function (req, res) {
                 suma = 0;
                 for (let l = 0; l < arrayGrande.length; l++) {
                     suma += arrayGrande[l]
-
                 }
                 valoresSumados.push(suma)
             }
@@ -242,16 +375,11 @@ app.post('/resultadosAfinidades', function (req, res) {
                                         actividadesElegidas[v].tema.push(tematicasOrdenadas[t].nombre)
                                     }
                                 }
-
                                 if (actividadExiste === false) {
                                     actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema: [tematicasOrdenadas[t].nombre] })
                                 }
                             }
-
-
-
                         }
-
                     }
 
                     // Esto nos da las actividades de las tres primeras posiciones del ranking y pertenecientes a distintas temáticas
@@ -270,8 +398,8 @@ app.post('/resultadosAfinidades', function (req, res) {
                     console.log(tematicasElegidas);
                     console.log('Estass son las actividades elegidadadasdsdas----------------------------------------------------')
                     // console.log(actividadesElegidas)
-                    // console.log('Estas son las actividadesss finalessss----------------------------------------------------------')
-                    // console.log(actividadesFinales)
+                    console.log('Estas son las actividadesss finalessss----------------------------------------------------------')
+                    console.log(actividadesFinales)
 
                     res.send(actividadesFinales)
                 }
