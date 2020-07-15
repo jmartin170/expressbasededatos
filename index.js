@@ -26,17 +26,57 @@ MongoClient.connect('mongodb+srv://cocorugo:bbkBoo1camp@cluster0-06yeb.mongodb.n
     }
 });
 
-app.get('/buscador', function (req, res) {
-    db.collection('actividades').find().toArray(function (err, voluntario) {
+// app.get('/buscador', function (req, res) {
+//     db.collection('actividades').find().toArray(function (err, voluntario) {
+//         if (err !== null) {
+//             console.log(err);
+//             res.send(err);
+//         } else {
+//             res.send(voluntario);
+//             console.log("funciona");
+//         }
+//     })
+// });
+
+app.get('/cargarTematicas', function (req, res) {
+
+    tematicas.find().toArray(function (err, temas) {
         if (err !== null) {
             console.log(err);
             res.send(err);
         } else {
-            res.send(voluntario);
-            console.log("funciona");
+            res.send(temas)
         }
     })
-});
+})
+
+
+app.get('/cargarProvincias', function (req, res) {
+
+    actividades.distinct("provincia", function (err, provincias){
+        if (err !== null) {
+            console.log(err);
+            res.send(err);
+        } else {
+            console.log(provincias)
+            res.send(provincias)
+        }
+
+    })
+})
+
+app.post('/buscador', function (req, res){
+
+    let palabra = req.body.palabra;
+    let tematicas = req.body.tematicas;
+    let provincia = req.body.provincia;
+
+    
+
+
+
+})
+
 
 app.post('/resultadosAfinidades', function (req, res) {
 
@@ -146,8 +186,6 @@ app.post('/resultadosAfinidades', function (req, res) {
                                 if (titulo.toLowerCase().indexOf(tematicasOrdenadas[p].palabrasClave[q]) !== -1 || ambito.toLowerCase().indexOf(tematicasOrdenadas[p].palabrasClave[q]) !== -1 || provincia.toLowerCase().indexOf(tematicasOrdenadas[p].palabrasClave[q]) !== -1 || descripcion.toLowerCase().indexOf(tematicasOrdenadas[p].palabrasClave[q]) !== -1 || extras.toLowerCase().indexOf(tematicasOrdenadas[p].palabrasClave[q]) !== -1) {
 
 
-
-                                    // Cómo comprobar si existe en el array el objeto que queremos introducir???? Hacer comparación con todos los atributos (no sólamente por el título)
                                     if (tematicasOrdenadas[p].actividades.length === 0) {
                                         (tematicasOrdenadas[p].actividades).push(datos)
 
@@ -196,7 +234,7 @@ app.post('/resultadosAfinidades', function (req, res) {
 
                             } else {
                                 let actividadExiste = false;
-                                
+
                                 for (let v = 0; v < actividadesElegidas.length; v++) {
                                     let datos = actividadesElegidas[v].actividad
                                     if (datos.titulo === tematicasOrdenadas[t].actividades[u].titulo && datos.ambito === tematicasOrdenadas[t].actividades[u].ambito && datos.descripcion === tematicasOrdenadas[t].actividades[u].descripcion && datos.extras === tematicasOrdenadas[t].actividades[u].extras) {
@@ -210,20 +248,20 @@ app.post('/resultadosAfinidades', function (req, res) {
                                 }
                             }
 
-                          
+
 
                         }
 
                     }
 
                     // Esto nos da las actividades de las tres primeras posiciones del ranking y pertenecientes a distintas temáticas
-                    for (let x = 0; x < tematicasElegidas.length; x++){
-                            for (let y=0;y<actividadesElegidas.length;y++){
-                                if (actividadesElegidas[y].tema[0] === tematicasElegidas[x].nombre){
-                                    actividadesFinales.push(actividadesElegidas[y])
-                                }
-
+                    for (let x = 0; x < tematicasElegidas.length; x++) {
+                        for (let y = 0; y < actividadesElegidas.length; y++) {
+                            if (actividadesElegidas[y].tema[0] === tematicasElegidas[x].nombre) {
+                                actividadesFinales.push(actividadesElegidas[y])
                             }
+
+                        }
 
                     }
 
@@ -250,6 +288,99 @@ app.post('/resultadosAfinidades', function (req, res) {
 
         }
 
+    })
+
+})
+
+app.post('/actividadesPorTematica', function (req, res) {
+
+    let temasInt = req.body.temas;
+    let tematicasNew = []
+    let actividadesElegidas = [];
+
+    // tematicas.find({ nombre: { $in: temasInt } }).toArray(function (err, tematicasElegidas) {
+
+    //     if (err !== null) {
+    //         console.log(err);
+    //         res.send(err)
+
+    //     } else {
+
+    //         if (tematicasElegidas.length > 0) {
+
+    //             console.log(tematicasElegidas)
+    //             actividades.find().toArray(function (err, allActivities) {
+    //                 if (err !== null) {
+    //                     console.log(err);
+    //                     res.send(err)
+
+    //                 } else {
+
+    tematicas.find().toArray(function (err, allTematicas) {
+
+        if (err !== null) {
+            console.log(err);
+            res.send(err)
+        } else {
+
+            for (let i = 0; i < allTematicas.length; i++) {
+                tematicasNew.push({ nombre: allTematicas[i].nombre, palabrasClave: allTematicas[i].palabrasClave, actividades: [] })
+            }
+
+            console.log(tematicasNew);
+
+            actividades.find().toArray(function (err, allActivities) {
+                if (err !== null) {
+                    console.log(err);
+                    res.send(err)
+                } else {
+                    allActivities.filter(function (datos) {
+                        titulo = datos.titulo;
+                        ambito = datos.ambito;
+                        provincia = datos.provincia;
+                        descripcion = datos.descripcion;
+                        extras = datos.extras;
+
+                        for (let p = 0; p < tematicasNew.length; p++) {
+
+                            for (let q = 0; q < tematicasNew[p].palabrasClave.length; q++) {
+
+                                if (titulo.toLowerCase().indexOf(tematicasNew[p].palabrasClave[q]) !== -1 || ambito.toLowerCase().indexOf(tematicasNew[p].palabrasClave[q]) !== -1 || provincia.toLowerCase().indexOf(tematicasNew[p].palabrasClave[q]) !== -1 || descripcion.toLowerCase().indexOf(tematicasNew[p].palabrasClave[q]) !== -1 || extras.toLowerCase().indexOf(tematicasNew[p].palabrasClave[q]) !== -1) {
+
+
+                                    if (tematicasNew[p].actividades.length === 0) {
+                                        (tematicasNew[p].actividades).push(datos)
+
+                                    } else {
+                                        let actividadExiste = false;
+                                        for (let r = 0; r < tematicasNew[p].actividades.length; r++) {
+
+                                            if (datos.titulo === tematicasNew[p].actividades[r].titulo && datos.ambito === tematicasNew[p].actividades[r].ambito && datos.descripcion === tematicasNew[p].actividades[r].descripcion && datos.extras === tematicasNew[p].actividades[r].extras) {
+                                                actividadExiste = true;
+                                            }
+                                        }
+
+                                        if (actividadExiste === false) {
+                                            (tematicasNew[p].actividades).push(datos)
+                                        }
+                                    }
+
+                                }
+
+                            }
+                        }
+
+                    });
+
+
+                }
+
+            })
+
+
+            console.log('Estas son las temáticas seleccionadas con sus actividades')
+            console.log(tematicasNew)
+        }
     })
 
 })
