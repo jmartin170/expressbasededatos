@@ -75,7 +75,10 @@ app.post('/buscador', function (req, res) {
     let filtroPorProvincia = [];
     let tematicasConActividades = [];
     let actividadesConTemas = [];
+    let actividadesConOtras = [];
+    let actividadesJuntas = []
     let actividadesFinales = [];
+
 
 
     actividades.find().toArray(function (err, actividadesDb) {
@@ -169,7 +172,7 @@ app.post('/buscador', function (req, res) {
 
                                 for (let v = 0; v < actividadesConTemas.length; v++) {
                                     let datos = actividadesConTemas[v].actividad
-                                    if (datos.titulo === tematicasConActividades[t].actividades[u].titulo && datos.ambito === tematicasConActividades[t].actividades[u].ambito && datos.descripcion === tematicasConActividades[t].actividades[u].descripcion && datos.extras === tematicasConActividades[t].actividades[u].extras && datos.municipio === tematicasConActividades[t].actividades[u].municipio && datos.fechaInicio === tematicasConActividades[t].actividades[u].fechaInicio && datos.fechaFin === tematicasConActividades[t].actividades[u].fechaFin && datos.fechaLimite === tematicasConActividades[t].actividades[u].fechaLimite)  {
+                                    if (datos.titulo === tematicasConActividades[t].actividades[u].titulo && datos.ambito === tematicasConActividades[t].actividades[u].ambito && datos.descripcion === tematicasConActividades[t].actividades[u].descripcion && datos.extras === tematicasConActividades[t].actividades[u].extras && datos.municipio === tematicasConActividades[t].actividades[u].municipio && datos.fechaInicio === tematicasConActividades[t].actividades[u].fechaInicio && datos.fechaFin === tematicasConActividades[t].actividades[u].fechaFin && datos.fechaLimite === tematicasConActividades[t].actividades[u].fechaLimite) {
                                         actividadExiste = true;
                                         actividadesConTemas[v].tema.push(tematicasConActividades[t].nombre)
                                     }
@@ -181,40 +184,58 @@ app.post('/buscador', function (req, res) {
                         }
                     }
 
+                    // Vamos a añadir las actividades correspondientes a la categoría otras. Para ello comparamos el array de actividades con temas asignados con el array de filtro por provincia
+                    for (let z = 0; z < filtroPorProvincia.length; z++) {
+                        let actividadRepe = false
+                        for (let x = 0; x < actividadesConTemas.length; x++) {
+
+                            let datos = actividadesConTemas[x].actividad;
+
+                            if (datos.titulo === filtroPorProvincia[z].titulo && datos.ambito === filtroPorProvincia[z].ambito && datos.descripcion === filtroPorProvincia[z].descripcion && datos.extras === filtroPorProvincia[z].extras && datos.municipio === filtroPorProvincia[z].municipio && datos.fechaInicio === filtroPorProvincia[z].fechaInicio && datos.fechaFin === filtroPorProvincia[z].fechaFin && datos.fechaLimite === filtroPorProvincia[z].fechaLimite) {
+                                actividadRepe = true
+                            }
+                        }
+                        if (actividadRepe === false) {
+                            actividadesConOtras.push({ actividad: filtroPorProvincia[z], tema: ['Otras'] })
+                        }
 
 
+
+                    }
+
+                    actividadesJuntas = actividadesConTemas.concat(actividadesConOtras)
 
                     // console.log("MIRAR AQUÍ----------------------")
                     // console.log(actividadesConTemas)
-                    if (tematicasInt.length === 0) {
-                        actividadesFinales = actividadesConTemas;
+                    if (tematicasInt.length === 0 || tematicasInt.length === 12) {
+                        actividadesFinales = actividadesJuntas;
                     } else {
 
                         for (let a = 0; a < tematicasInt.length; a++) {
-                            for (let b = 0; b < actividadesConTemas.length; b++) {
-                                for (let c = 0; c < actividadesConTemas[b].tema.length; c++) {
-                                    if (tematicasInt[a] === actividadesConTemas[b].tema[c]) {
+                            for (let b = 0; b < actividadesJuntas.length; b++) {
+                                for (let c = 0; c < actividadesJuntas[b].tema.length; c++) {
+                                    if (tematicasInt[a] === actividadesJuntas[b].tema[c]) {
 
                                         if (actividadesFinales.length === 0) {
-                                            actividadesFinales.push(actividadesConTemas[b])
+                                            actividadesFinales.push(actividadesJuntas[b])
                                         } else {
                                             let actividadRepetida = false;
 
                                             for (let d = 0; d < actividadesFinales.length; d++) {
-                                                let datos = actividadesConTemas[b].actividad;
+                                                let datos = actividadesJuntas[b].actividad;
                                                 let datosFinales = actividadesFinales[d].actividad;
 
                                                 if (datos.titulo === datosFinales.titulo && datos.ambito === datosFinales.ambito && datos.descripcion === datosFinales.descripcion && datos.extras === datosFinales.extras) {
                                                     actividadRepetida = true;
-                                                    
+
                                                 }
 
                                             }
-                                            if(!actividadRepetida) {
-                                                actividadesFinales.push(actividadesConTemas[b])
+                                            if (!actividadRepetida) {
+                                                actividadesFinales.push(actividadesJuntas[b])
                                             }
 
-                                           
+
                                         }
                                     }
 
@@ -224,10 +245,12 @@ app.post('/buscador', function (req, res) {
                         }
                     }
 
-                    
+
 
                     console.log("MIRAR AQUÍ-----------------------------------------------------------------------------------")
-                    console.log(actividadesFinales)
+                    console.log(actividadesConOtras.length)
+                   console.log('Mirar aquí ---------------------------------')
+                   console.log(actividadesFinales.length)
                     res.send(actividadesFinales)
                 }
             })
