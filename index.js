@@ -225,7 +225,7 @@ app.post('/buscador', function (req, res) {
                                                 let datos = actividadesJuntas[b].actividad;
                                                 let datosFinales = actividadesFinales[d].actividad;
 
-                                                if (datos.titulo === datosFinales.titulo && datos.ambito === datosFinales.ambito && datos.descripcion === datosFinales.descripcion && datos.extras === datosFinales.extras) {
+                                                if (datos.titulo === datosFinales.titulo && datos.ambito === datosFinales.ambito && datos.descripcion === datosFinales.descripcion && datos.extras === datosFinales.extras && datos.municipio === datosFinales.municipio && datos.fechaInicio === datosFinales.fechaInicio && datos.fechaFin === datosFinales.fechaFin && datos.fechaLimite === datosFinales.fechaLimite) {
                                                     actividadRepetida = true;
 
                                                 }
