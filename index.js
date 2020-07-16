@@ -13,6 +13,7 @@ app.use(cors());
 let db;
 let actividades;
 let tematicas;
+let ods;
 
 MongoClient.connect('mongodb+srv://cocorugo:bbkBoo1camp@cluster0-06yeb.mongodb.net/idatis?retryWrites=true&w=majority', function (err, client) {
     if (err !== null) {
@@ -21,7 +22,8 @@ MongoClient.connect('mongodb+srv://cocorugo:bbkBoo1camp@cluster0-06yeb.mongodb.n
     } else {
         db = client.db('idatis');
         actividades = db.collection('actividades');
-        tematicas = db.collection('tematicas')
+        tematicas = db.collection('tematicas');
+        ods = db.collection('ods');
 
     }
 });
@@ -78,6 +80,7 @@ app.post('/buscador', function (req, res) {
     let actividadesConOtras = [];
     let actividadesJuntas = []
     let actividadesFinales = [];
+    let actividadesconOds = [];
 
 
 
@@ -245,13 +248,68 @@ app.post('/buscador', function (req, res) {
                         }
                     }
 
+                    ods.find().toArray(function (err, odsDb) {
+                        if (err !== null) {
+                            console.log(err);
+                            res.send(err);
+                        } else {
 
+                            for (let q = 0; q < actividadesFinales.length; q++) {
+                                actividadesconOds.push({
+                                    actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema,
+                                    ods: []
+                                });
+                            };
+
+                            for (let f = 0; f < odsDb.length; f++) {
+                                for (let e = 0; e < odsDb[f].palabrasClave.length; e++) {
+                                    for (let g = 0; g < actividadesconOds.length; g++) {
+                                        if (actividadesconOds[g].actividad.titulo.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.ambito.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.descripcion.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.extras.indexOf(odsDb[f].palabrasClave[e]) !== -1) {
+
+
+                                            if (actividadesconOds[g].ods.length === 0) {
+
+                                                actividadesconOds[g].ods.push({
+                                                    nombre: odsDb[f].nombre,
+                                                    logo: odsDb[f].imagen.url
+                                                })
+
+                                            } else {
+                                                let odsExiste = false;
+                                                for (let r = 0; r < actividadesconOds[g].ods.length; r++) {
+
+                                                    if (actividadesconOds[g].ods[r].nombre === odsDb[f].nombre) {
+                                                        odsExiste = true;
+                                                    }
+                                                }
+
+                                                if (odsExiste === false) {
+                                                    actividadesconOds[g].ods.push({
+                                                        nombre: odsDb[f].nombre,
+                                                        logo: odsDb[f].imagen.url
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                            console.log(actividadesconOds);
+                            console.log(actividadesconOds.length);
+                            res.send(actividadesconOds);
+                        }
+                    });
 
                     console.log("MIRAR AQUÍ-----------------------------------------------------------------------------------")
                     console.log(actividadesConOtras.length)
-                   console.log('Mirar aquí ---------------------------------')
-                   console.log(actividadesFinales.length)
-                    res.send(actividadesFinales)
+                    console.log('Mirar aquí ---------------------------------')
+                    
+                   
+                    
+
+
+
                 }
             })
 
