@@ -94,16 +94,16 @@ app.post('/buscador', function (req, res) {
                 }
             })
 
-            if (provincia!=="Seleccione una provincia"){
+            if (provincia !== "Seleccione una provincia") {
                 filtroPorProvincia = filtroPorPalabra.filter(function (actividad) {
                     {
                         if (actividad.provincia.toLowerCase().indexOf(provincia.toLowerCase()) !== -1) {
                             return true;
-                        } 
+                        }
                     }
                 })
             } else {
-                filtroPorProvincia=filtroPorPalabra;
+                filtroPorProvincia = filtroPorPalabra;
             }
 
 
@@ -126,15 +126,15 @@ app.post('/buscador', function (req, res) {
                         }
                     }
 
-                    for(let i=0; i<tematicasConActividades.length; i++){
-                        for (let j=0; j<tematicasConActividades[i].palabrasClave.length; j++){
-                            for(let k=0; k<filtroPorProvincia.length; k++){
-                                if(filtroPorProvincia[k].titulo.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1 || filtroPorProvincia[k].ambito.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1  || filtroPorProvincia[k].descripcion.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1 || filtroPorProvincia[k].extras.indexOf(tematicasConActividades[i].palabrasClave[j])!==-1  ){
+                    for (let i = 0; i < tematicasConActividades.length; i++) {
+                        for (let j = 0; j < tematicasConActividades[i].palabrasClave.length; j++) {
+                            for (let k = 0; k < filtroPorProvincia.length; k++) {
+                                if (filtroPorProvincia[k].titulo.indexOf(tematicasConActividades[i].palabrasClave[j]) !== -1 || filtroPorProvincia[k].ambito.indexOf(tematicasConActividades[i].palabrasClave[j]) !== -1 || filtroPorProvincia[k].descripcion.indexOf(tematicasConActividades[i].palabrasClave[j]) !== -1 || filtroPorProvincia[k].extras.indexOf(tematicasConActividades[i].palabrasClave[j]) !== -1) {
 
 
                                     if (tematicasConActividades[i].actividades.length === 0) {
-                                        
-                                        (tematicasConActividades[i].actividades).push(filtroPorProvincia[k]) 
+
+                                        (tematicasConActividades[i].actividades).push(filtroPorProvincia[k])
 
                                     } else {
                                         let actividadExiste = false;
@@ -148,7 +148,7 @@ app.post('/buscador', function (req, res) {
                                         if (actividadExiste === false) {
                                             (tematicasConActividades[i].actividades).push(filtroPorProvincia[k])
                                         }
-                                    }  
+                                    }
                                 }
                             }
                         }
@@ -169,7 +169,7 @@ app.post('/buscador', function (req, res) {
 
                                 for (let v = 0; v < actividadesConTemas.length; v++) {
                                     let datos = actividadesConTemas[v].actividad
-                                    if (datos.titulo === tematicasConActividades[t].actividades[u].titulo && datos.ambito === tematicasConActividades[t].actividades[u].ambito && datos.descripcion === tematicasConActividades[t].actividades[u].descripcion && datos.extras === tematicasConActividades[t].actividades[u].extras) {
+                                    if (datos.titulo === tematicasConActividades[t].actividades[u].titulo && datos.ambito === tematicasConActividades[t].actividades[u].ambito && datos.descripcion === tematicasConActividades[t].actividades[u].descripcion && datos.extras === tematicasConActividades[t].actividades[u].extras && datos.municipio === tematicasConActividades[t].actividades[u].municipio && datos.fechaInicio === tematicasConActividades[t].actividades[u].fechaInicio && datos.fechaFin === tematicasConActividades[t].actividades[u].fechaFin && datos.fechaLimite === tematicasConActividades[t].actividades[u].fechaLimite)  {
                                         actividadExiste = true;
                                         actividadesConTemas[v].tema.push(tematicasConActividades[t].nombre)
                                     }
@@ -180,19 +180,52 @@ app.post('/buscador', function (req, res) {
                             }
                         }
                     }
-                    
+
+
+
+
                     // console.log("MIRAR AQUÍ----------------------")
                     // console.log(actividadesConTemas)
+                    if (tematicasInt.length === 0) {
+                        actividadesFinales = actividadesConTemas;
+                    } else {
 
-                    for (let a=0; a<tematicasInt.length; a++){
-                        for (let b=0; b<actividadesConTemas.length; b++){
-                            for (let c=0; c<actividadesConTemas[b].tema.length; c++){
-                                if(tematicasInt[a]===actividadesConTemas[b].tema[c]){
-                                    actividadesFinales.push(actividadesConTemas[b])
+                        for (let a = 0; a < tematicasInt.length; a++) {
+                            for (let b = 0; b < actividadesConTemas.length; b++) {
+                                for (let c = 0; c < actividadesConTemas[b].tema.length; c++) {
+                                    if (tematicasInt[a] === actividadesConTemas[b].tema[c]) {
+
+                                        if (actividadesFinales.length === 0) {
+                                            actividadesFinales.push(actividadesConTemas[b])
+                                        } else {
+                                            let actividadRepetida = false;
+
+                                            for (let d = 0; d < actividadesFinales.length; d++) {
+                                                let datos = actividadesConTemas[b].actividad;
+                                                let datosFinales = actividadesFinales[d].actividad;
+
+                                                if (datos.titulo === datosFinales.titulo && datos.ambito === datosFinales.ambito && datos.descripcion === datosFinales.descripcion && datos.extras === datosFinales.extras) {
+                                                    actividadRepetida = true;
+                                                    
+                                                }
+
+                                            }
+                                            if(!actividadRepetida) {
+                                                actividadesFinales.push(actividadesConTemas[b])
+                                            }
+
+                                           
+                                        }
+                                    }
+
+
                                 }
                             }
                         }
                     }
+
+                    
+
                     console.log("MIRAR AQUÍ-----------------------------------------------------------------------------------")
                     console.log(actividadesFinales)
                     res.send(actividadesFinales)
