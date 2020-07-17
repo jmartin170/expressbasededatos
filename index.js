@@ -1,6 +1,6 @@
 const express = require('express');
 const mongodb = require('mongodb');
-const cors = require('cors');
+// const cors = require('cors');
 
 const MongoClient = mongodb.MongoClient;
 const app = express();
@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
+// app.use(cors());
 
 let db;
 let actividades;
@@ -178,7 +178,7 @@ app.post('/buscador', function (req, res) {
                                     }
                                 }
                                 if (actividadExiste === false) {
-                                    actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
+                                    actividadesConTemas.push({ actividad: tematicasConAcntividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
                                 }
                             }
                         }
@@ -295,15 +295,15 @@ app.post('/resultadosAfinidades', function (req, res) {
             let tematicasElegidas = [];
             let suma;
 
-            for (let i = 0; i < tematicasDb.length; i++) {
+            for (let i = 0; i < tematicasDb.length -1; i++) {
                 for (let j = 0; j < afinidadesInt.length; j++) {
-                    valoresDivision.push(parseInt(afinidadesInt[j].valor) / parseInt(tematicasDb[i].afinidades[j].valor[0]))
+                    valoresDivision.push(parseInt(afinidadesInt[j].valor) / parseInt(tematicasDb[i].afinidades[j].valor))
                 }
             }
 
             // OJO!! CAMBIAR 4 POR NÚMERO DE SLIDERS 
-            for (let h = 0; h < valoresDivision.length; h = h + 4) {
-                valoresFiltrados.push(valoresDivision.slice(h, h + 4))
+            for (let h = 0; h < valoresDivision.length; h = h + 8) {
+                valoresFiltrados.push(valoresDivision.slice(h, h + 8))
             }
 
             let arrayGrande = [];
@@ -319,7 +319,7 @@ app.post('/resultadosAfinidades', function (req, res) {
             // For para obtener valores absolutos. OJO AQUÍ TAMBIÉN!!!
 
             for (let l = 0; l < valoresSumados.length; l++) {
-                valoresFinales.push(Math.abs(4 - valoresSumados[l]))
+                valoresFinales.push(Math.abs(8 - valoresSumados[l]))
             }
 
             for (let m = 0; m < tematicasDb.length; m++) {
