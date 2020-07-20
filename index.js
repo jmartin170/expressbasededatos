@@ -181,7 +181,7 @@ app.post('/buscador', function (req, res) {
                                     }
                                 }
                                 if (actividadExiste === false) {
-                                    actividadesConTemas.push({ actividad: tematicasConAcntividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
+                                    actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
                                 }
                             }
                         }
@@ -348,7 +348,8 @@ app.post('/resultadosAfinidades', function (req, res) {
             let valoresFinales = [];
             let tematicasOrdenadas = [];
             let actividadesElegidas = [];
-            let actividadesFinales = []
+            let actividadesFinales = [];
+            let actividadesconOds = [];
             // Elegimos las tres primeras temáticas según el ranking
             let tematicasElegidas = [];
             let suma;
@@ -507,6 +508,60 @@ app.post('/resultadosAfinidades', function (req, res) {
 
                     }
 
+
+                    ods.find().toArray(function (err, odsDb) {
+                        if (err !== null) {
+                            console.log(err);
+                            res.send(err);
+                        } else {
+
+                            for (let q = 0; q < actividadesFinales.length; q++) {
+                                actividadesconOds.push({
+                                    actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema,
+                                    ods: []
+                                });
+                            };
+
+                            for (let f = 0; f < odsDb.length; f++) {
+                                for (let e = 0; e < odsDb[f].palabrasClave.length; e++) {
+                                    for (let g = 0; g < actividadesconOds.length; g++) {
+                                        if (actividadesconOds[g].actividad.titulo.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.ambito.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.descripcion.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.extras.indexOf(odsDb[f].palabrasClave[e]) !== -1) {
+
+
+                                            if (actividadesconOds[g].ods.length === 0) {
+
+                                                actividadesconOds[g].ods.push({
+                                                    nombre: odsDb[f].nombre,
+                                                    logo: odsDb[f].imagen.url
+                                                })
+
+                                            } else {
+                                                let odsExiste = false;
+                                                for (let r = 0; r < actividadesconOds[g].ods.length; r++) {
+
+                                                    if (actividadesconOds[g].ods[r].nombre === odsDb[f].nombre) {
+                                                        odsExiste = true;
+                                                    }
+                                                }
+
+                                                if (odsExiste === false) {
+                                                    actividadesconOds[g].ods.push({
+                                                        nombre: odsDb[f].nombre,
+                                                        logo: odsDb[f].imagen.url
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                            console.log(actividadesconOds);
+                            console.log(actividadesconOds.length);
+                            res.send(actividadesconOds);
+                        }
+                    });
+
                     console.log(tematicasOrdenadas);
                     console.log('Estas son las tematicas elegidas --------------------------------------')
                     console.log(tematicasElegidas);
@@ -515,7 +570,7 @@ app.post('/resultadosAfinidades', function (req, res) {
                     console.log('Estas son las actividadesss finalessss----------------------------------------------------------')
                     console.log(actividadesFinales)
 
-                    res.send(actividadesFinales)
+                  
                 }
             })
 
@@ -647,9 +702,6 @@ app.post('/actividadesPorAfinidades', function (req, res) {
 
         }
     })
-
-
-
 
 
 })
