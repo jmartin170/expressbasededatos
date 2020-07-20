@@ -121,7 +121,7 @@ app.post('/buscador', function (req, res) {
                     // console.log(tematicasDb)
 
                     for (let m = 0; m < tematicasDb.length; m++) {
-                        tematicasConActividades.push({ nombre: tematicasDb[m].nombre, palabrasClave: [], actividades: [] })
+                        tematicasConActividades.push({ nombre: tematicasDb[m].nombre, palabrasClave: [], actividades: [], imagen: tematicasDb[m].imagen  })
                     }
 
                     for (let n = 0; n < tematicasDb.length; n++) {
@@ -168,7 +168,7 @@ app.post('/buscador', function (req, res) {
                         for (let u = 0; u < tematicasConActividades[t].actividades.length; u++) {
 
                             if (actividadesConTemas.length === 0) {
-                                actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
+                                actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] , logotema: [tematicasConActividades[t].imagen]})
 
                             } else {
                                 let actividadExiste = false;
@@ -178,10 +178,11 @@ app.post('/buscador', function (req, res) {
                                     if (datos.titulo === tematicasConActividades[t].actividades[u].titulo && datos.ambito === tematicasConActividades[t].actividades[u].ambito && datos.descripcion === tematicasConActividades[t].actividades[u].descripcion && datos.extras === tematicasConActividades[t].actividades[u].extras && datos.municipio === tematicasConActividades[t].actividades[u].municipio && datos.fechaInicio === tematicasConActividades[t].actividades[u].fechaInicio && datos.fechaFin === tematicasConActividades[t].actividades[u].fechaFin && datos.fechaLimite === tematicasConActividades[t].actividades[u].fechaLimite) {
                                         actividadExiste = true;
                                         actividadesConTemas[v].tema.push(tematicasConActividades[t].nombre)
+                                        actividadesConTemas[v].logotema.push(tematicasConActividades[t].imagen)
                                     }
                                 }
                                 if (actividadExiste === false) {
-                                    actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] })
+                                    actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre], logotema: [tematicasConActividades[t].imagen] })
                                 }
                             }
                         }
@@ -199,7 +200,7 @@ app.post('/buscador', function (req, res) {
                             }
                         }
                         if (actividadRepe === false) {
-                            actividadesConOtras.push({ actividad: filtroPorProvincia[z], tema: ['Otras'] })
+                            actividadesConOtras.push({ actividad: filtroPorProvincia[z], tema: ['Otras'], logotema: []})
                         }
 
 
@@ -256,7 +257,7 @@ app.post('/buscador', function (req, res) {
 
                             for (let q = 0; q < actividadesFinales.length; q++) {
                                 actividadesconOds.push({
-                                    actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema,
+                                    actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema, logotema: actividadesFinales[q].logotema,
                                     ods: []
                                 });
                             };
@@ -295,8 +296,7 @@ app.post('/buscador', function (req, res) {
                                 }
 
                             }
-                            console.log(actividadesconOds);
-                            console.log(actividadesconOds.length);
+                           
                             res.send(actividadesconOds);
                         }
                     });
@@ -304,9 +304,9 @@ app.post('/buscador', function (req, res) {
                     console.log("MIRAR AQUÍ-----------------------------------------------------------------------------------")
                     console.log(actividadesConOtras.length)
                     console.log('Mirar aquí ---------------------------------')
-                    
-                   
-                    
+
+
+
 
 
 
@@ -335,14 +335,7 @@ app.post('/resultadosAfinidades', function (req, res) {
 
     let afinidadesInt = req.body.afinidades;
 
-    tematicas.find().toArray(function (err, tematicasDb) {
-        if (err !== null) {
-            console.log(err);
-            res.send(err)
-
-        } else {
-
-            let valoresDivision = [];
+    let valoresDivision = [];
             let valoresFiltrados = [];
             let valoresSumados = [];
             let valoresFinales = [];
@@ -354,13 +347,23 @@ app.post('/resultadosAfinidades', function (req, res) {
             let tematicasElegidas = [];
             let suma;
 
+    tematicas.find().toArray(function (err, tematicasDb) {
+        if (err !== null) {
+            console.log(err);
+            res.send(err)
+
+        } else {
+
+            // aqui funcionaba BORRAR ESTE COMENTARIO
+
+
             for (let i = 0; i < tematicasDb.length -1; i++) {
                 for (let j = 0; j < afinidadesInt.length; j++) {
                     valoresDivision.push(parseInt(afinidadesInt[j].valor) / parseInt(tematicasDb[i].afinidades[j].valor))
                 }
             }
 
-            // OJO!! CAMBIAR 4 POR NÚMERO DE SLIDERS 
+            // OJO!! CAMBIAR 4 POR NÚMERO DE SLIDERS
             for (let h = 0; h < valoresDivision.length; h = h + 8) {
                 valoresFiltrados.push(valoresDivision.slice(h, h + 8))
             }
@@ -382,7 +385,7 @@ app.post('/resultadosAfinidades', function (req, res) {
             }
 
             for (let m = 0; m < tematicasDb.length; m++) {
-                tematicasOrdenadas.push({ nombre: tematicasDb[m].nombre, puntuacion: valoresFinales[m], palabrasClave: [], actividades: [] })
+                tematicasOrdenadas.push({ nombre: tematicasDb[m].nombre, puntuacion: valoresFinales[m], palabrasClave: [], actividades: [], imagen: tematicasDb[m].imagen })
             }
 
             // Ordenar resultados por puntuación
@@ -407,7 +410,7 @@ app.post('/resultadosAfinidades', function (req, res) {
             let descripcion;
             let extras;
 
-            actividades.find().toArray(function (err, allActivities) {
+            actividades.find().toArray(async function (err, allActivities) {
 
                 if (err !== null) {
                     console.log(err);
@@ -415,11 +418,7 @@ app.post('/resultadosAfinidades', function (req, res) {
 
                 } else {
                     console.log(allActivities);
-
-
-
-
-
+                    
                     allActivities.filter(function (datos) {
                         titulo = datos.titulo;
                         ambito = datos.ambito;
@@ -458,27 +457,17 @@ app.post('/resultadosAfinidades', function (req, res) {
 
                     });
 
+
                     for (let s = 0; s < 4; s++) {
                         tematicasElegidas.push(tematicasOrdenadas[s])
 
                     };
 
-
-
-
-                    // actividades = [
-                    //     {
-                    //         actividad: actividad1, 
-                    //         temas: [tema4, tema2]
-                    //     }, 
-                    //     {actividad: actividad5, temas: [tema4, tema1, ...]}
-                    // ]
-
                     for (let t = 0; t < tematicasOrdenadas.length; t++) {
                         for (let u = 0; u < tematicasOrdenadas[t].actividades.length; u++) {
 
                             if (actividadesElegidas.length === 0) {
-                                actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema: [tematicasOrdenadas[t].nombre] })
+                                actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema:[tematicasOrdenadas[t].nombre], logotema: [tematicasOrdenadas[t].imagen]})
 
                             } else {
                                 let actividadExiste = false;
@@ -488,10 +477,11 @@ app.post('/resultadosAfinidades', function (req, res) {
                                     if (datos.titulo === tematicasOrdenadas[t].actividades[u].titulo && datos.ambito === tematicasOrdenadas[t].actividades[u].ambito && datos.descripcion === tematicasOrdenadas[t].actividades[u].descripcion && datos.extras === tematicasOrdenadas[t].actividades[u].extras) {
                                         actividadExiste = true;
                                         actividadesElegidas[v].tema.push(tematicasOrdenadas[t].nombre)
+                                        actividadesElegidas[v].logotema.push(tematicasOrdenadas[t].imagen)
                                     }
                                 }
                                 if (actividadExiste === false) {
-                                    actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema: [tematicasOrdenadas[t].nombre] })
+                                    actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema: [tematicasOrdenadas[t].nombre], logotema: [tematicasOrdenadas[t].imagen] })
                                 }
                             }
                         }
@@ -509,68 +499,68 @@ app.post('/resultadosAfinidades', function (req, res) {
                     }
 
 
-                    ods.find().toArray(function (err, odsDb) {
-                        if (err !== null) {
-                            console.log(err);
-                            res.send(err);
-                        } else {
+                    
+                    let odsDb;
+                    try {
+                        odsDb = await ods.find().toArray();
+                    } catch(e) {
+                        console.log(e);
+                        res.send(e);
+                    }
+                    
+                    for (let q = 0; q < actividadesFinales.length; q++) {
+                        actividadesconOds.push({
+                            actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema, logotema: actividadesFinales[q].logotema,
+                            ods: []
+                        });
+                    };
+                    //
+                    for (let f = 0; f < odsDb.length; f++) {
+                        for (let e = 0; e < odsDb[f].palabrasClave.length; e++) {
+                            for (let g = 0; g < actividadesconOds.length; g++) {
+                                if (actividadesconOds[g].actividad.titulo.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.ambito.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.descripcion.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.extras.indexOf(odsDb[f].palabrasClave[e]) !== -1) {
 
-                            for (let q = 0; q < actividadesFinales.length; q++) {
-                                actividadesconOds.push({
-                                    actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema,
-                                    ods: []
-                                });
-                            };
 
-                            for (let f = 0; f < odsDb.length; f++) {
-                                for (let e = 0; e < odsDb[f].palabrasClave.length; e++) {
-                                    for (let g = 0; g < actividadesconOds.length; g++) {
-                                        if (actividadesconOds[g].actividad.titulo.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.ambito.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.descripcion.indexOf(odsDb[f].palabrasClave[e]) !== -1 || actividadesconOds[g].actividad.extras.indexOf(odsDb[f].palabrasClave[e]) !== -1) {
+                                    if (actividadesconOds[g].ods.length === 0) {
 
+                                        actividadesconOds[g].ods.push({
+                                            nombre: odsDb[f].nombre,
+                                            logo: odsDb[f].imagen.url
+                                        })
 
-                                            if (actividadesconOds[g].ods.length === 0) {
+                                    } else {
+                                        let odsExiste = false;
+                                        for (let r = 0; r < actividadesconOds[g].ods.length; r++) {
 
-                                                actividadesconOds[g].ods.push({
-                                                    nombre: odsDb[f].nombre,
-                                                    logo: odsDb[f].imagen.url
-                                                })
-
-                                            } else {
-                                                let odsExiste = false;
-                                                for (let r = 0; r < actividadesconOds[g].ods.length; r++) {
-
-                                                    if (actividadesconOds[g].ods[r].nombre === odsDb[f].nombre) {
-                                                        odsExiste = true;
-                                                    }
-                                                }
-
-                                                if (odsExiste === false) {
-                                                    actividadesconOds[g].ods.push({
-                                                        nombre: odsDb[f].nombre,
-                                                        logo: odsDb[f].imagen.url
-                                                    });
-                                                }
+                                            if (actividadesconOds[g].ods[r].nombre === odsDb[f].nombre) {
+                                                odsExiste = true;
                                             }
+                                        }
+
+                                        if (odsExiste === false) {
+                                            actividadesconOds[g].ods.push({
+                                                nombre: odsDb[f].nombre,
+                                                logo: odsDb[f].imagen.url
+                                            });
                                         }
                                     }
                                 }
-
                             }
-                            console.log(actividadesconOds);
-                            console.log(actividadesconOds.length);
-                            res.send(actividadesconOds);
                         }
-                    });
 
-                    console.log(tematicasOrdenadas);
-                    console.log('Estas son las tematicas elegidas --------------------------------------')
-                    console.log(tematicasElegidas);
-                    console.log('Estass son las actividades elegidadadasdsdas----------------------------------------------------')
-                    // console.log(actividadesElegidas)
-                    console.log('Estas son las actividadesss finalessss----------------------------------------------------------')
-                    console.log(actividadesFinales)
+                    }
+                    res.send(actividadesconOds);
 
-                  
+                    // console.log(tematicasOrdenadas);
+                    // console.log('Estas son las tematicas elegidas --------------------------------------')
+                    // console.log(tematicasElegidas);
+                    // console.log('Estass son las actividades elegidadadasdsdas----------------------------------------------------')
+                    // // console.log(actividadesElegidas)
+                    // console.log('Estas son las actividadesss finalessss----------------------------------------------------------')
+
+                    // console.log(actividadesFinales)
+
+
                 }
             })
 
