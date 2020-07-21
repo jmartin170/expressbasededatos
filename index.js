@@ -1,6 +1,7 @@
 const express = require('express');
 const mongodb = require('mongodb');
 // const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const MongoClient = mongodb.MongoClient;
 const app = express();
@@ -8,6 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 // app.use(cors());
 
 let db;
@@ -24,9 +26,26 @@ MongoClient.connect('mongodb+srv://cocorugo:bbkBoo1camp@cluster0-06yeb.mongodb.n
         actividades = db.collection('actividades');
         tematicas = db.collection('tematicas');
         ods = db.collection('ods');
-
     }
 });
+
+app.get('/prueba', function (req, res) {
+    // leer datos del cookie que llegan con la peticion (req)
+    let datosDelCookie;
+    if (req.cookies.persona !== undefined) {
+        datosDelCookie = req.cookies.persona;
+        console.log(datosDelCookie.palabra);
+    }
+
+    // añadir datos al cookie que se envia en la respuesta (res)
+    let preferencias = {
+        palabra: 'volunting',
+        provincia: 'kokorugo',
+        tematica: 'libre'
+    }
+    res.cookie('persona', preferencias, { maxAge: 360000 });
+    res.send('hola');
+})
 
 // app.get('/buscador', function (req, res) {
 //     db.collection('actividades').find().toArray(function (err, voluntario) {
@@ -55,6 +74,7 @@ app.get('/cargarTematicas', function (req, res) {
 
 app.get('/cargarProvincias', function (req, res) {
 
+    //distinct descarta todos los datos duplicados
     actividades.distinct("provincia", function (err, provincias) {
         if (err !== null) {
             console.log(err);
@@ -65,14 +85,43 @@ app.get('/cargarProvincias', function (req, res) {
         }
 
     })
-})
+});
 
 app.post('/buscador', function (req, res) {
 
     let palabra = req.body.palabra;
     let tematicasInt = req.body.tematicas;
     let provincia = req.body.provincia;
-
+    let datosDelCookie;
+    if (req.cookies.usuario !== undefined) {
+        if(req.body.palabra === '' && req.body.tematicas === [] && req.body.provincia === '') {
+            palabra = req.cookies.usuario.palabra;
+            tematicasInt = req.cookies.usuario.tematica;
+            provincia = req.cookies.usuario.provincia;
+        }else if(req.body.palabra === '' && req.body.tematicas !== [] && req.body.provincia !== ''){
+            palabra = req.cookies.usuario.palabra;
+        }else if(req.body.palabra === '' && req.body.tematicas === [] && req.body.provincia !== ''){
+            palabra = req.cookies.usuario.palabra;
+            tematicasInt = req.cookies.usuario.tematica;
+        }else if(req.body.palabra === '' && req.body.tematicas !== [] && req.body.provincia === ''){
+            palabra = req.cookies.usuario.palabra;
+            provincia = req.cookies.usuario.provincia;
+        }else if(req.body.palabra !== '' && req.body.tematicas === [] && req.body.provincia === ''){
+            tematicasInt = req.cookies.usuario.tematica;
+            provincia = req.cookies.usuario.provincia;
+        }else if(req.body.palabra !== '' && req.body.tematicas !== [] && req.body.provincia === ''){
+            provincia = req.cookies.usuario.provincia;
+        }else if(req.body.palabra !== '' && req.body.tematicas === [] && req.body.provincia !== ''){
+            tematicasInt = req.cookies.usuario.tematica;
+        }
+    };
+    let preferencias = {
+        palabra: palabra,
+        provincia: provincia,
+        tematica: tematicasInt
+    }
+    res.cookie('usuario', preferencias, { maxAge: 360000 });
+    // res.send('hola');
     let filtroPorPalabra = [];
     let filtroPorProvincia = [];
     let tematicasConActividades = [];
@@ -121,7 +170,7 @@ app.post('/buscador', function (req, res) {
                     // console.log(tematicasDb)
 
                     for (let m = 0; m < tematicasDb.length; m++) {
-                        tematicasConActividades.push({ nombre: tematicasDb[m].nombre, palabrasClave: [], actividades: [], imagen: tematicasDb[m].imagen  })
+                        tematicasConActividades.push({ nombre: tematicasDb[m].nombre, palabrasClave: [], actividades: [], imagen: tematicasDb[m].imagen })
                     }
 
                     for (let n = 0; n < tematicasDb.length; n++) {
@@ -168,7 +217,7 @@ app.post('/buscador', function (req, res) {
                         for (let u = 0; u < tematicasConActividades[t].actividades.length; u++) {
 
                             if (actividadesConTemas.length === 0) {
-                                actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre] , logotema: [tematicasConActividades[t].imagen]})
+                                actividadesConTemas.push({ actividad: tematicasConActividades[t].actividades[u], tema: [tematicasConActividades[t].nombre], logotema: [tematicasConActividades[t].imagen] })
 
                             } else {
                                 let actividadExiste = false;
@@ -200,7 +249,7 @@ app.post('/buscador', function (req, res) {
                             }
                         }
                         if (actividadRepe === false) {
-                            actividadesConOtras.push({ actividad: filtroPorProvincia[z], tema: ['Otras'], logotema: []})
+                            actividadesConOtras.push({ actividad: filtroPorProvincia[z], tema: ['Otras'], logotema: [] })
                         }
 
 
@@ -296,7 +345,7 @@ app.post('/buscador', function (req, res) {
                                 }
 
                             }
-                           
+
                             res.send(actividadesconOds);
                         }
                     });
@@ -336,16 +385,16 @@ app.post('/resultadosAfinidades', function (req, res) {
     let afinidadesInt = req.body.afinidades;
 
     let valoresDivision = [];
-            let valoresFiltrados = [];
-            let valoresSumados = [];
-            let valoresFinales = [];
-            let tematicasOrdenadas = [];
-            let actividadesElegidas = [];
-            let actividadesFinales = [];
-            let actividadesconOds = [];
-            // Elegimos las tres primeras temáticas según el ranking
-            let tematicasElegidas = [];
-            let suma;
+    let valoresFiltrados = [];
+    let valoresSumados = [];
+    let valoresFinales = [];
+    let tematicasOrdenadas = [];
+    let actividadesElegidas = [];
+    let actividadesFinales = [];
+    let actividadesconOds = [];
+    // Elegimos las tres primeras temáticas según el ranking
+    let tematicasElegidas = [];
+    let suma;
 
     tematicas.find().toArray(function (err, tematicasDb) {
         if (err !== null) {
@@ -357,7 +406,7 @@ app.post('/resultadosAfinidades', function (req, res) {
             // aqui funcionaba BORRAR ESTE COMENTARIO
 
 
-            for (let i = 0; i < tematicasDb.length -1; i++) {
+            for (let i = 0; i < tematicasDb.length - 1; i++) {
                 for (let j = 0; j < afinidadesInt.length; j++) {
                     valoresDivision.push(parseInt(afinidadesInt[j].valor) / parseInt(tematicasDb[i].afinidades[j].valor))
                 }
@@ -418,7 +467,7 @@ app.post('/resultadosAfinidades', function (req, res) {
 
                 } else {
                     console.log(allActivities);
-                    
+
                     allActivities.filter(function (datos) {
                         titulo = datos.titulo;
                         ambito = datos.ambito;
@@ -467,7 +516,7 @@ app.post('/resultadosAfinidades', function (req, res) {
                         for (let u = 0; u < tematicasOrdenadas[t].actividades.length; u++) {
 
                             if (actividadesElegidas.length === 0) {
-                                actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema:[tematicasOrdenadas[t].nombre], logotema: [tematicasOrdenadas[t].imagen]})
+                                actividadesElegidas.push({ actividad: tematicasOrdenadas[t].actividades[u], tema: [tematicasOrdenadas[t].nombre], logotema: [tematicasOrdenadas[t].imagen] })
 
                             } else {
                                 let actividadExiste = false;
@@ -499,15 +548,15 @@ app.post('/resultadosAfinidades', function (req, res) {
                     }
 
 
-                    
+
                     let odsDb;
                     try {
                         odsDb = await ods.find().toArray();
-                    } catch(e) {
+                    } catch (e) {
                         console.log(e);
                         res.send(e);
                     }
-                    
+
                     for (let q = 0; q < actividadesFinales.length; q++) {
                         actividadesconOds.push({
                             actividad: actividadesFinales[q].actividad, tema: actividadesFinales[q].tema, logotema: actividadesFinales[q].logotema,
