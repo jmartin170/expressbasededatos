@@ -96,7 +96,7 @@ app.post('/buscador', function (req, res) {
     console.log(tematicasInt);
     console.log(provincia);
     let datosDelCookie;
-    if (req.cookies.usuario !== undefined) {
+    if (req.cookies.usuario !== undefined && req.body.busquedaActiva === false) {
         if (req.body.palabra === '' && req.body.tematicas.length === 0 && req.body.provincia === '') {
             palabra = req.cookies.usuario.palabra;
             tematicasInt = req.cookies.usuario.tematica;
@@ -123,8 +123,10 @@ app.post('/buscador', function (req, res) {
         provincia: provincia,
         tematica: tematicasInt
     }
+
     res.cookie('usuario', preferencias, { maxAge: 360000 });
     // res.send('hola');
+
     let filtroPorPalabra = [];
     let filtroPorProvincia = [];
     let tematicasConActividades = [];
