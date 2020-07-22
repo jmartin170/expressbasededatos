@@ -92,27 +92,30 @@ app.post('/buscador', function (req, res) {
     let palabra = req.body.palabra;
     let tematicasInt = req.body.tematicas;
     let provincia = req.body.provincia;
+    console.log(palabra);
+    console.log(tematicasInt);
+    console.log(provincia);
     let datosDelCookie;
     if (req.cookies.usuario !== undefined) {
-        if(req.body.palabra === '' && req.body.tematicas === [] && req.body.provincia === '') {
+        if (req.body.palabra === '' && req.body.tematicas.length === 0 && req.body.provincia === '') {
             palabra = req.cookies.usuario.palabra;
             tematicasInt = req.cookies.usuario.tematica;
             provincia = req.cookies.usuario.provincia;
-        }else if(req.body.palabra === '' && req.body.tematicas !== [] && req.body.provincia !== ''){
-            palabra = req.cookies.usuario.palabra;
-        }else if(req.body.palabra === '' && req.body.tematicas === [] && req.body.provincia !== ''){
-            palabra = req.cookies.usuario.palabra;
-            tematicasInt = req.cookies.usuario.tematica;
-        }else if(req.body.palabra === '' && req.body.tematicas !== [] && req.body.provincia === ''){
-            palabra = req.cookies.usuario.palabra;
-            provincia = req.cookies.usuario.provincia;
-        }else if(req.body.palabra !== '' && req.body.tematicas === [] && req.body.provincia === ''){
-            tematicasInt = req.cookies.usuario.tematica;
-            provincia = req.cookies.usuario.provincia;
-        }else if(req.body.palabra !== '' && req.body.tematicas !== [] && req.body.provincia === ''){
-            provincia = req.cookies.usuario.provincia;
-        }else if(req.body.palabra !== '' && req.body.tematicas === [] && req.body.provincia !== ''){
-            tematicasInt = req.cookies.usuario.tematica;
+        } else if (req.body.palabra !== '' && req.body.tematicas.length !== 0 && req.body.provincia === '') {
+            provincia = req.body.provincia;
+        } else if (req.body.palabra !== '' && req.body.tematicas.length === 0 && req.body.provincia !== '') {
+            tematicasInt = req.body.tematicas;
+        } else if (req.body.palabra === '' && req.body.tematicas.length !== 0 && req.body.provincia !== '') {
+            palabra = req.body.palabra;
+        } else if (req.body.palabra !== '' && req.body.tematicas.length === 0 && req.body.provincia === '') {
+            tematicasInt = req.body.tematicas;
+            provincia = req.body.provincia;
+        } else if (req.body.palabra === '' && req.body.tematicas.length !== 0 && req.body.provincia === '') {
+            palabra = req.body.palabra;
+            provincia = req.body.provincia;
+        } else if (req.body.palabra === '' && req.body.tematicas.length === 0 && req.body.provincia !== '') {
+            palabra = req.body.palabra;
+            tematicasInt = req.body.tematicas;
         }
     };
     let preferencias = {
